@@ -460,19 +460,27 @@ try {
         $z.BeginAnimation([System.Windows.UIElement]::OpacityProperty, $borra)
     }
 
+    # Humo del cigarro: sube por pasos en el mismo tick que el resto de la mascota.
+    # (Con animaciones fluidas la ventana transparente se redibujaba sin parar y se trababa al irse)
+    $humos = New-Object System.Collections.ArrayList
+    $PASOS_HUMO = 13
     function Humo {
         $h = New-Object System.Windows.Shapes.Rectangle
         $h.Width = $px * 0.8; $h.Height = $px * 0.8
         $h.Fill = Pincel 190 190 195
-        [System.Windows.Controls.Canvas]::SetLeft($h, 12.8 * $px)
         [void]$img.Children.Add($h)
-        $dur = [TimeSpan]::FromMilliseconds(1600)
-        $sube = New-Object System.Windows.Media.Animation.DoubleAnimation (7 * $px), (0 * $px), $dur
-        $lado = New-Object System.Windows.Media.Animation.DoubleAnimation (12.8 * $px), (14.2 * $px), $dur
-        $borra = New-Object System.Windows.Media.Animation.DoubleAnimation 0.8, 0, $dur
-        $h.BeginAnimation([System.Windows.Controls.Canvas]::TopProperty, $sube)
-        $h.BeginAnimation([System.Windows.Controls.Canvas]::LeftProperty, $lado)
-        $h.BeginAnimation([System.Windows.UIElement]::OpacityProperty, $borra)
+        [void]$humos.Add(@{ r = $h; paso = 0 })
+        Mover-Humo
+    }
+    function Mover-Humo {
+        foreach ($b in @($humos)) {
+            $f = $b.paso / $PASOS_HUMO
+            if ($f -ge 1) { $img.Children.Remove($b.r); $humos.Remove($b); continue }
+            [System.Windows.Controls.Canvas]::SetTop($b.r, (7 - 7 * $f) * $px)
+            [System.Windows.Controls.Canvas]::SetLeft($b.r, (12.8 + 1.4 * $f) * $px)
+            $b.r.Opacity = 0.8 * (1 - $f)
+            $b.paso++
+        }
     }
 
     $anim = New-Object System.Windows.Threading.DispatcherTimer
@@ -563,6 +571,7 @@ try {
         }
         # Humo del cigarro (no mientras duerme)
         if ($cigarro) {
+            Mover-Humo
             if (-not $estado.dormido -and $estado.fase -ne 'dormir' -and ($t % 9) -eq 0) { Humo }
             $brasa.Opacity = $(if (($t % 6) -lt 3) { 1 } else { 0.6 })
         }

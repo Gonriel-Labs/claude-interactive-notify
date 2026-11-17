@@ -51,6 +51,10 @@ for ronda in rondas:
     for puesto, archivo in enumerate(ronda):
         datos = json.loads(archivo.read_text(encoding="utf-8-sig"))
         cuadros = datos["cuadros"]
+        # Si la grabacion se trabo, la mascota da un tiron: mejor volver a grabarla
+        hueco = max(b["t"] - a["t"] for a, b in zip(cuadros, cuadros[1:]))
+        if hueco > 250:
+            print(f"AVISO: {archivo.name} tiene un hueco de {hueco} ms; vuelve a grabarla")
         retraso = PAUSA_INICIO + puesto * RETRASO_APILADA
         t0 = cuadros[0]["t"]
         inicios = [inicio_ronda + retraso + c["t"] - t0 for c in cuadros]
