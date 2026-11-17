@@ -1,0 +1,5 @@
+{
+  "name": "claude-interactive-notify",
+  "owner": { "name": "mark-quispe" },
+  "plugins": [{ "name": "interactive-notify", "source": "./" }]
+}

@@ -1,0 +1,6 @@
+{
+  "name": "interactive-notify",
+  "version": "0.2.0",
+  "description": "Una mascota animada en pixel art te avisa en Windows cuando Claude termina, pide permiso o te pregunta algo",
+  "author": { "name": "mark-quispe" }
+}
