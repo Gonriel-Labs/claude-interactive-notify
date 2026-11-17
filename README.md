@@ -67,7 +67,7 @@ En la app de escritorio, donde `/plugin` no funciona: haz clic en **+** junto al
 La mascota aparece en una sesión nueva.
 
 > [!NOTE]
-> Si lo instalaste por alguno de estos caminos y usas la app de escritorio, saldrán dos avisos: el de la app y la mascota. Para quedarte solo con la mascota, pídele a Claude en la app que desactive su opción Task complete notifications, o desactiva **Task complete notifications** en su configuración.
+> Si lo instalaste por alguno de estos caminos y usas la app de escritorio, saldrán dos avisos: el de la app y la mascota. Para quedarte solo con la mascota, desactiva **Task complete notifications** en la configuración de la app, o pídeselo a Claude ahí mismo.
 
 ## Desinstalar
 
