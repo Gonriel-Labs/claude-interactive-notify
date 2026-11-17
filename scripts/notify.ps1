@@ -147,9 +147,9 @@ $rgb = $colores[$Tipo]; if (-not $rgb) { $rgb = $colores['fin'] }
 
 # Accesorio: uno al azar en cada aviso, sin importar la fecha
 if (-not $Accesorio) {
-    # De cada 20: 12 sin accesorio, 3 navidad, 3 lentes, 1 fiesta, 1 bruja
-    $dado = Get-Random -Maximum 20
-    $Accesorio = $(if ($dado -le 11) { 'ninguno' } elseif ($dado -le 14) { 'navidad' } elseif ($dado -le 17) { 'lentes' } elseif ($dado -eq 18) { 'fiesta' } else { 'bruja' })
+    # De cada 100: 56 sin accesorio, 20 lentes, 14 navidad, 5 fiesta, 5 bruja
+    $dado = Get-Random -Maximum 100
+    $Accesorio = $(if ($dado -lt 56) { 'ninguno' } elseif ($dado -lt 76) { 'lentes' } elseif ($dado -lt 90) { 'navidad' } elseif ($dado -lt 95) { 'fiesta' } else { 'bruja' })
 }
 # Forma de la mascota: cambia esta linea a 'cangrejo' si la quieres con tenazas
 $MASCOTA_CONFIGURADA = 'clasica'
