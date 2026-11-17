@@ -7,7 +7,8 @@ param(
     [string]$Expresion = "",   # al terminar: feliz | pesados | bostezo (si no, al azar)
     [switch]$Siempre,          # mostrar aunque estes mirando Claude (para probar)
     [double]$ClicTras = 0,     # solo pruebas: simula un clic tras N segundos
-    [string]$CapturaPNG = ''   # solo documentacion: guarda el popup como PNG y se cierra
+    [string]$CapturaPNG = '',  # solo documentacion: guarda el popup como PNG y se cierra
+    [string]$CapturaSVG = ''   # solo documentacion: graba la animacion en este .json (ver tools/armar_svg.py)
 )
 
 # Registros de errores y depuracion: en la carpeta temporal del usuario
@@ -681,7 +682,28 @@ public static class VentanaClaude {
     }
     $w.Add_MouseLeftButtonUp({ Clic })
 
+    if ($CapturaSVG) {
+        # Graba cada cuadro como figuras (posicion, color, opacidad) con su tiempo y la posicion
+        # de la ventana, para armar despues un SVG animado del aviso (ver tools/armar_svg.py)
+        $refs = @([System.Windows.Window], [System.Windows.Media.Visual], [System.Windows.DependencyObject], [System.Xaml.XamlType], [System.ComponentModel.ISupportInitialize]) |
+            ForEach-Object { $_.Assembly.Location } | Select-Object -Unique
+        if (-not ('Grabador' -as [type])) { Add-Type -Path (Join-Path (Split-Path $PSScriptRoot -Parent) 'tools\Grabador.cs') -ReferencedAssemblies $refs }
+        $estado.reloj = [Diagnostics.Stopwatch]::StartNew()
+        $estado.cuadros = New-Object System.Collections.Generic.List[string]
+        $estado.grabar = New-Object System.Windows.Threading.DispatcherTimer
+        $estado.grabar.Interval = [TimeSpan]::FromMilliseconds(40)
+        $estado.grabar.Add_Tick({
+            $estado.cuadros.Add("{""t"":$($estado.reloj.ElapsedMilliseconds),""x"":$([math]::Round($w.Left - $area.Right, 2)),""f"":$([Grabador]::Cuadro($w.Content))}")
+        })
+        $w.Add_Closing({
+            $estado.grabar.Stop()
+            $txt = "{""ancho"":$ancho,""alto"":$alto,""cuadros"":[" + ($estado.cuadros -join ',') + "]}"
+            [System.IO.File]::WriteAllText($CapturaSVG, $txt, (New-Object System.Text.UTF8Encoding $false))
+        })
+    }
+
     $w.Add_Loaded({
+        if ($CapturaSVG) { $estado.grabar.Start() }
         $anim.Start()
         try {
             $script:sonido = New-Object System.Media.SoundPlayer (Crear-Sonido $melodia)
@@ -716,7 +738,7 @@ public static class VentanaClaude {
                 # Solo para pruebas: simula un clic tras unos segundos
                 $estado.prueba = New-Object System.Windows.Threading.DispatcherTimer
                 $estado.prueba.Interval = [TimeSpan]::FromSeconds($ClicTras)
-                $estado.prueba.Add_Tick({ $estado.prueba.Stop(); Clic })
+                $estado.prueba.Add_Tick({ $estado.prueba.Stop(); if ($CapturaSVG) { Irse } else { Clic } })
                 $estado.prueba.Start()
             }
         }

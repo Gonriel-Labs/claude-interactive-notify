@@ -7,9 +7,9 @@ Un mod para Windows que reemplaza los avisos de Claude Code por una mascota en p
 - **Te pregunta algo**: un **?** flotando sobre la cabeza.
 - **Algo falló**: cara triste y globo rojo.
 
-![La mascota avisando que la respuesta está lista, con el resumen de lo que hizo Claude y cuánto tardó](docs/respuesta-lista.png)
-
-![La mascota con gorro de Navidad avisando que Claude te hace una pregunta](docs/pregunta.png)
+<p align="center">
+  <img src="docs/respuesta-lista.svg" width="474" alt="La mascota entra caminando, avisa que la respuesta está lista con el resumen de lo que hizo Claude y cuánto tardó, y se va al hacerle clic">
+</p>
 
 ## Qué hace
 
@@ -20,9 +20,13 @@ Un mod para Windows que reemplaza los avisos de Claude Code por una mascota en p
 - **Suena suave**: una gota al terminar, un pop cuando te necesita. Se generan al vuelo, sin archivos de audio.
 - **Se apila**: si terminan varias sesiones a la vez, las mascotas salen una encima de otra.
 
-| Pide permiso | Algo falló |
+| Pide permiso | Te pregunta algo |
 | --- | --- |
-| ![La mascota con ojos abiertos y un signo de exclamación pidiendo permiso](docs/permiso.png) | ![La mascota triste con lentes y cigarro avisando un error](docs/error.png) |
+| <img src="docs/permiso.svg" alt="La mascota con un signo de exclamación encima pide permiso para usar Bash"> | <img src="docs/pregunta.svg" alt="La mascota con gorro de Navidad y un signo de pregunta flotando te hace una pregunta"> |
+
+| Algo falló | Si no le haces caso |
+| --- | --- |
+| <img src="docs/error.svg" alt="La mascota triste, con lentes y cigarro humeante, avisa que algo falló"> | <img src="docs/se-duerme.svg" alt="La mascota se sienta, cabecea y se queda dormida soltando zetas, luego se levanta y se va"> |
 
 ## Instalación
 
@@ -69,4 +73,12 @@ La mascota aparece en una sesión nueva.
 
 ```bash
 claude plugin uninstall interactive-notify
+```
+
+## Regenerar las animaciones
+
+Las animaciones de `docs/` son SVG animados grabados del aviso real, cuadro por cuadro: cada cuadro guarda las figuras de la mascota y del globo como vectores. Si cambias la mascota, vuelve a generarlas (necesita Python 3):
+
+```bash
+powershell -ExecutionPolicy Bypass -File tools/grabar-svgs.ps1
 ```
