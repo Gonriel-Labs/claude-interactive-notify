@@ -8,7 +8,7 @@ Un mod para Windows que reemplaza los avisos de Claude Code por una mascota en p
 - **Algo falló**: cara triste y globo rojo.
 
 <p align="center">
-  <img src="docs/respuesta-lista.svg" width="474" alt="La mascota entra caminando, avisa que la respuesta está lista con el resumen de lo que hizo Claude y cuánto tardó, y se va al hacerle clic">
+  <img src="docs/demo.svg" width="474" alt="Dos mascotas llegan una encima de otra, cada vez con otro estilo: primero una respuesta lista y otra con lentes pidiendo permiso; luego una con gorro de Navidad bostezando y otra que pregunta algo; al final una con sombrero de bruja y otra con gorro de fiesta avisando un error. Cada una se va caminando al hacerle clic.">
 </p>
 
 ## Qué hace
