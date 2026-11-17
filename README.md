@@ -8,7 +8,7 @@ Un mod para Windows que reemplaza los avisos de Claude Code por una mascota en p
 - **Algo falló**: cara triste y globo rojo.
 
 <p align="center">
-  <img src="docs/demo.svg" width="474" alt="Dos mascotas llegan una encima de otra, cada vez con otro estilo: primero una respuesta lista y otra con lentes pidiendo permiso; luego una con gorro de Navidad bostezando y otra que pregunta algo; al final una con sombrero de bruja y otra con gorro de fiesta avisando un error. Cada una se va caminando al hacerle clic.">
+  <img src="docs/demo.svg" width="760" alt="Dos mascotas llegan una encima de otra, cada vez con otro estilo: primero una respuesta lista y otra con lentes pidiendo permiso; luego una con gorro de Navidad bostezando y otra que pregunta algo; al final una con sombrero de bruja y otra con gorro de fiesta avisando un error. Cada una se va caminando al hacerle clic.">
 </p>
 
 ## Qué hace
@@ -36,7 +36,7 @@ Un mod para Windows que reemplaza los avisos de Claude Code por una mascota en p
 > Abre Claude Code (la app de escritorio, la terminal o VS Code), copia este mensaje, pégalo en el chat y envíalo:
 >
 > ```text
-> Instala el plugin interactive-notify del marketplace de GitHub mark-quispe/claude-interactive-notify, con alcance de usuario. Si estás en la app de escritorio, desactiva también sus notificaciones de tarea completada.
+> Instala el plugin interactive-notify del marketplace de GitHub mark-quispe/claude-interactive-notify, con alcance de usuario. Si estás en la app de escritorio, desactiva también su opción Task complete notifications.
 > ```
 >
 > Claude hace el resto. Te pedirá permiso antes de ejecutar los comandos y antes de cambiar la configuración de la app: acéptalo. Así no te llegan dos avisos (el de la app y la mascota) cada vez que termina. Cuando termine, **abre una sesión nueva**, mándale un mensaje y cambia a otra ventana mientras responde: la mascota aparecerá al terminar.
@@ -67,7 +67,7 @@ En la app de escritorio, donde `/plugin` no funciona: haz clic en **+** junto al
 La mascota aparece en una sesión nueva.
 
 > [!NOTE]
-> Si lo instalaste por alguno de estos caminos y usas la app de escritorio, saldrán dos avisos: el de la app y la mascota. Para quedarte solo con la mascota, pídele a Claude en la app que desactive sus notificaciones de tarea completada, o desactiva **Task complete notifications** en su configuración.
+> Si lo instalaste por alguno de estos caminos y usas la app de escritorio, saldrán dos avisos: el de la app y la mascota. Para quedarte solo con la mascota, pídele a Claude en la app que desactive su opción Task complete notifications, o desactiva **Task complete notifications** en su configuración.
 
 ## Desinstalar
 
