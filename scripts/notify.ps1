@@ -418,6 +418,10 @@ try {
     $duerme = ($Tipo -eq 'fin' -or $Tipo -eq 'error')
     $estado = @{ tick = 0; fase = 'caminar'; espera = 0; suenio = 0; dormido = $false; saliendo = $false; letras = 0; sentado = $false }
     $limiteEspera = $(if ($duerme) { 38 } else { 80 })   # ticks de 120 ms
+    # Trabajo largo (1 min o mas): probablemente te fuiste, asi que no se va sola.
+    # Tope de 2 horas dormida por si nunca vuelves (el mod la deja vivir 3 h)
+    $quedarse = $duerme -and $duracionMs -ge 60000 -and -not $CapturaSVG -and -not $CapturaPNG
+    $MAX_DORMIDA = [int](2 * 3600 / 0.12)
 
     function Mover($desde, $hasta, $alTerminar, [switch]$Salida) {
         $estado.fase = 'caminar'
@@ -447,8 +451,12 @@ try {
             Mover $w.Left $fuera { $w.Close() } -Salida
         }
     }
+    $zetas = New-Object System.Collections.ArrayList
     function Zeta {
+        # Borra las que ya se desvanecieron (dormida horas, se acumularian)
+        foreach ($v in @($zetas)) { if ($estado.tick - $v.t -gt 14) { $img.Children.Remove($v.z); $zetas.Remove($v) } }
         $z = New-Object System.Windows.Controls.TextBlock
+        [void]$zetas.Add(@{ z = $z; t = $estado.tick })
         $z.Text = 'z'; $z.FontFamily = 'Consolas'; $z.FontWeight = 'Bold'
         $z.FontSize = 12 + (Get-Random -Maximum 6); $z.Foreground = Pincel 200 200 220
         [System.Windows.Controls.Canvas]::SetLeft($z, 12 * $px + (Get-Random -Maximum 8))
@@ -562,7 +570,8 @@ try {
                     $mueve.Y = (2 + $(if ((($t / 8) % 2) -lt 1) { 0 } else { 0.7 })) * $px
                     if (($s % 7) -eq 0) { Zeta }
                 }
-                if ($s -ge 50) { Irse }
+                # Tras un trabajo largo se queda dormida hasta que le hagas clic (o vuelvas a Claude)
+                if ($s -ge 50 -and (-not $quedarse -or $s -ge $MAX_DORMIDA)) { Irse }
             }
         }
         # Parpadeo (no cuando duerme)
@@ -574,6 +583,10 @@ try {
             Mover-Humo
             if (-not $estado.dormido -and $estado.fase -ne 'dormir' -and ($t % 9) -eq 0) { Humo }
             $brasa.Opacity = $(if (($t % 6) -lt 3) { 1 } else { 0.6 })
+        }
+        # Cada medio segundo mira que ventana tienes al frente (no mientras camina, para no trabarla)
+        if (($t % 4) -eq 0 -and -not $estado.saliendo -and $estado.fase -ne 'caminar' -and -not $CapturaSVG) {
+            try { Mirar-Frente } catch {}
         }
         # El simbolo flota
         if ($simbolo) { PonerY $simbolo $(if ((($t / 3) % 2) -lt 1) { -4 * $px } else { -4.6 * $px }) }
@@ -607,7 +620,11 @@ public static class VentanaClaude {
     [DllImport("user32.dll")] static extern uint GetWindowThreadProcessId(IntPtr h, out uint pid);
     delegate bool EnumProc(IntPtr h, IntPtr l);
     [DllImport("user32.dll")] static extern bool EnumWindows(EnumProc f, IntPtr l);
+    [DllImport("user32.dll")] static extern IntPtr GetForegroundWindow();
     public static bool Visible(IntPtr h) { return IsIconic(h) || IsWindowVisible(h); }
+    public static bool Minimizada(IntPtr h) { return IsIconic(h); }
+    public static IntPtr Frente() { return GetForegroundWindow(); }
+    public static int PidDe(IntPtr h) { uint p; GetWindowThreadProcessId(h, out p); return (int)p; }
     // La ventana "de verdad" de un proceso: con titulo, sin duenio, visible o minimizada.
     // (MainWindowHandle puede apuntar a una ventana oculta cuando la app esta minimizada)
     public static IntPtr DeProceso(int pid) {
@@ -623,8 +640,8 @@ public static class VentanaClaude {
     }
     public static void Traer(IntPtr h) {
         if (IsIconic(h)) ShowWindow(h, 9);   // SW_RESTORE
-        else ShowWindow(h, 5);               // SW_SHOW
-        // Un toque de Alt destraba el bloqueo de Windows para cambiar de ventana
+        if (SetForegroundWindow(h) && GetForegroundWindow() == h) return;
+        // Si Windows no dejo cambiar de ventana, un toque de Alt lo destraba
         keybd_event(0x12, 0, 0, UIntPtr.Zero);
         keybd_event(0x12, 0, 2, UIntPtr.Zero);
         SetForegroundWindow(h);
@@ -665,7 +682,48 @@ public static class VentanaClaude {
         }
         return [IntPtr]::Zero
     }
+    # Procesos de donde vino el aviso (la app, la terminal o VS Code), para saber si ya volviste ahi.
+    # Se arma una sola vez, cuando la preparacion en segundo plano ya termino.
+    function Pids-Origen {
+        if ($null -ne $estado.pidsOrigen) { return $estado.pidsOrigen }
+        if (-not $estado.preparacion -or -not $estado.preparacion.IsCompleted) { return $null }
+        if ($null -eq $estado.ancestros) { $estado.ancestros = @($estado.preparando.EndInvoke($estado.preparacion) | ForEach-Object { [int]$_ }) }
+        $ids = @()
+        foreach ($id in $estado.ancestros) {
+            if ($id -eq $PID) { continue }
+            $p = Get-Process -Id $id -ErrorAction SilentlyContinue
+            if (-not $p -or $p.ProcessName -eq 'explorer') { break }
+            $ids += $id
+        }
+        if ($origen -eq 'claude-desktop') {
+            $ids += @(Get-Process -Name claude -ErrorAction SilentlyContinue | Where-Object { $_.Path -like '*WindowsApps*' } | ForEach-Object { $_.Id })
+        }
+        $estado.pidsOrigen = $ids
+        return $ids
+    }
+    # Ventana al frente que no sea la mascota, y si es la de origen
+    function Mirar-Frente {
+        if (-not ('VentanaClaude' -as [type])) { return }
+        $ids = Pids-Origen
+        if ($null -eq $ids) { return }
+        $h = [VentanaClaude]::Frente()
+        if ($h -eq [IntPtr]::Zero) { return }
+        $pid2 = [VentanaClaude]::PidDe($h)
+        if ($pid2 -eq $PID) { return }
+        $estado.frente = $h
+        $enOrigen = $ids -contains $pid2
+        # Volviste por tu cuenta a Claude: la mascota ya no hace falta y se va sola
+        if ($enOrigen -and $estado.fueraDeOrigen -and -not $estado.saliendo) {
+            if ($env:MASCOTA_DEBUG) { "Volviste al origen (pid $pid2): se va sola" | Out-File (Join-Path $dirLogs 'notify-debug.log') -Append -Encoding UTF8 }
+            Irse
+        }
+        if (-not $enOrigen) { $estado.fueraDeOrigen = $true }
+    }
+
     function Clic {
+        # Solo cuenta el primer clic: repetir todo en cada clic podia esconder o cerrar Claude
+        if ($estado.clicado) { return }
+        $estado.clicado = $true
         Irse
         try {
             $h = Ventana-Origen
@@ -684,7 +742,13 @@ public static class VentanaClaude {
             if ($env:MASCOTA_DEBUG) {
                 "Clic: origen=$origen ventana=$h ancestros=$($estado.ancestros -join ',')" | Out-File (Join-Path $dirLogs 'notify-debug.log') -Append -Encoding UTF8
             }
-            if ($h -ne [IntPtr]::Zero) { [VentanaClaude]::Traer($h) }
+            # Si ya la tienes al frente (la abriste tu), no se toca
+            # (al hacer clic la mascota puede quedar al frente; entonces vale la ultima que se vio)
+            $frente = [VentanaClaude]::Frente()
+            if ([VentanaClaude]::PidDe($frente) -eq $PID) { $frente = $estado.frente }
+            $yaAlFrente = $h -ne [IntPtr]::Zero -and $frente -eq $h -and -not [VentanaClaude]::Minimizada($h)
+            if ($env:MASCOTA_DEBUG) { "Clic: ya al frente=$yaAlFrente (frente=$frente, pid=$([VentanaClaude]::PidDe([VentanaClaude]::Frente())))" | Out-File (Join-Path $dirLogs 'notify-debug.log') -Append -Encoding UTF8 }
+            if ($h -ne [IntPtr]::Zero -and -not $yaAlFrente) { [VentanaClaude]::Traer($h) }
         } catch {
             "Clic: " + ($_ | Out-String) | Out-File (Join-Path $dirLogs 'notify-error.log') -Append -Encoding UTF8
         }

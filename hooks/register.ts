@@ -9,10 +9,11 @@ export const register: Register = on => {
   let recap = ''
 
   // Lanza el popup sin esperarlo; si algo falla, nunca afecta a la sesion.
+  // Tras un trabajo largo la mascota se queda dormida hasta 2 h esperando tu clic: por eso 3 h de margen.
   const mostrar = (root: string, run: (argv: string[], init: { stdin: string; timeoutMs: number }) => Promise<unknown>, datos: object) => {
     void run(
       ['powershell.exe', '-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-File', `${root}/${SCRIPT}`],
-      { stdin: JSON.stringify(datos), timeoutMs: 90000 },
+      { stdin: JSON.stringify(datos), timeoutMs: 3 * 60 * 60 * 1000 },
     ).catch(() => undefined)
   }
 
