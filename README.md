@@ -36,10 +36,17 @@ Un mod para Windows que reemplaza los avisos de Claude Code por una mascota en p
 > Abre Claude Code (la app de escritorio, la terminal o VS Code), copia este mensaje, pégalo en el chat y envíalo:
 >
 > ```text
-> Instala el plugin interactive-notify del marketplace de GitHub mark-quispe/claude-interactive-notify, con alcance de usuario. Si estás en la app de escritorio, desactiva también su opción Task complete notifications.
+> Instala el plugin interactive-notify del marketplace de GitHub mark-quispe/claude-interactive-notify, con alcance de usuario, y activa la actualización automática de ese marketplace (autoUpdate). Si estás en la app de escritorio, desactiva también su opción Task complete notifications.
 > ```
 >
-> Claude hace el resto. Te pedirá permiso antes de ejecutar los comandos y antes de cambiar la configuración de la app: acéptalo. Así no te llegan dos avisos (el de la app y la mascota) cada vez que termina. Cuando termine, **abre una sesión nueva**, mándale un mensaje y cambia a otra ventana mientras responde: la mascota aparecerá al terminar.
+> Claude hace el resto. Te pedirá permiso antes de ejecutar los comandos y antes de cambiar la configuración de la app: acéptalo. Así no te llegan dos avisos (el de la app y la mascota) cada vez que termina. Cuando termine, **abre una sesión nueva**, mándale un mensaje y cambia a otra ventana mientras responde: la mascota aparecerá al terminar. Los estilos y mejoras nuevos te llegarán solos: se descargan mientras usas Claude Code y se activan la próxima vez que lo abras.
+
+> [!NOTE]
+> **¿Lo instalaste antes del 19 de noviembre de 2026?** Tu copia no se actualiza sola. Pégale esto a Claude una vez:
+>
+> ```text
+> Actualiza el plugin interactive-notify y activa la actualización automática de su marketplace mark-quispe/claude-interactive-notify (autoUpdate).
+> ```
 
 ### Requisitos
 
@@ -54,7 +61,7 @@ En el prompt de una sesión de Claude Code en la terminal:
 /plugin install interactive-notify --marketplace mark-quispe/claude-interactive-notify
 ```
 
-Responde `y` para agregar el marketplace y elige el alcance (usuario, para todas tus sesiones).
+Responde `y` para agregar el marketplace y elige el alcance (usuario, para todas tus sesiones). Para que se actualice solo: `/plugin` → pestaña **Marketplaces** → `claude-interactive-notify` → activa la actualización automática.
 
 Desde una terminal:
 
