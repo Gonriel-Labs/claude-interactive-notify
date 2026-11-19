@@ -16,7 +16,7 @@ Un mod para Windows que reemplaza los avisos de Claude Code por una mascota en p
 - **Te lleva de vuelta**: haz clic en la mascota y se abre la ventana de donde vino el aviso, sea la app de escritorio, la terminal o VS Code. Si estaba minimizada la restaura; si la app estaba cerrada en la bandeja, la abre.
 - **No molesta**: si ya estás mirando esa ventana, no aparece.
 - **Tiene vida propia**: saluda, parpadea y bosteza. Si no le haces caso se sienta, cabecea y se queda dormida (z z z). Al irse se levanta y sale caminando.
-- **Cambia cada vez**: expresiones y accesorios al azar (gorro de Navidad, de fiesta, sombrero de bruja, lentes con cigarro).
+- **Cambia cada vez**: expresiones y accesorios al azar (gorro de Navidad, de fiesta, sombrero de bruja, lentes con cigarro, pirata, audífonos con música).
 - **Suena suave**: una gota al terminar, un pop cuando te necesita. Se generan al vuelo, sin archivos de audio.
 - **Se apila**: si terminan varias sesiones a la vez, las mascotas salen una encima de otra.
 

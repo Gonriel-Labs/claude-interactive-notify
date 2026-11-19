@@ -2,7 +2,7 @@ param(
     [string]$Titulo = "",
     [string]$Mensaje = "",
     [string]$Tipo = "",        # fin | permiso | pregunta | error (si no, se deduce)
-    [string]$Accesorio = "",   # navidad | fiesta | bruja | lentes | ninguno (si no, por fecha)
+    [string]$Accesorio = "",   # navidad | fiesta | bruja | lentes | pirata | audifonos | ninguno (si no, al azar)
     [string]$Mascota = "",     # clasica | cangrejo (si no, la de $MASCOTA_CONFIGURADA)
     [string]$Expresion = "",   # al terminar: feliz | pesados | bostezo (si no, al azar)
     [switch]$Siempre,          # mostrar aunque estes mirando Claude (para probar)
@@ -147,9 +147,10 @@ $rgb = $colores[$Tipo]; if (-not $rgb) { $rgb = $colores['fin'] }
 
 # Accesorio: uno al azar en cada aviso, sin importar la fecha
 if (-not $Accesorio) {
-    # De cada 100: 56 sin accesorio, 20 lentes, 14 navidad, 5 fiesta, 5 bruja
+    # De cada 100: 46 sin accesorio, 20 lentes, 14 navidad, 5 fiesta, 5 bruja, 5 pirata, 5 audifonos
     $dado = Get-Random -Maximum 100
-    $Accesorio = $(if ($dado -lt 56) { 'ninguno' } elseif ($dado -lt 76) { 'lentes' } elseif ($dado -lt 90) { 'navidad' } elseif ($dado -lt 95) { 'fiesta' } else { 'bruja' })
+    $Accesorio = $(if ($dado -lt 46) { 'ninguno' } elseif ($dado -lt 66) { 'lentes' } elseif ($dado -lt 80) { 'navidad' }
+                   elseif ($dado -lt 85) { 'fiesta' } elseif ($dado -lt 90) { 'bruja' } elseif ($dado -lt 95) { 'pirata' } else { 'audifonos' })
 }
 # Forma de la mascota: cambia esta linea a 'cangrejo' si la quieres con tenazas
 $MASCOTA_CONFIGURADA = 'clasica'
@@ -357,7 +358,7 @@ try {
     if ($Tipo -eq 'error') { $boca = Grupo $cuerpo @(@(6,8,1,1), @(7,7,2,1), @(9,8,1,1)) $cOscuro }
 
     # Accesorio
-    $cigarro = $false
+    $cigarro = $false; $musica = $false
     switch ($Accesorio) {
         'navidad' {
             $rojo = Pincel 200 40 45; $blanco = Pincel 245 245 245
@@ -384,6 +385,20 @@ try {
             [void](Bloque $cuerpo 9 7.6 0.8 0.7 (Pincel 200 150 90))
             $brasa = Bloque $cuerpo 12.4 7.6 0.7 0.7 (Pincel 235 80 40)
             $cigarro = $true
+        }
+        'pirata' {
+            # Panuelo rojo con lunares, nudo al costado y parche en el ojo
+            $rojo = Pincel 200 40 45; $blanco = Pincel 245 245 245
+            [void](Grupo $cuerpo @(@(3,1.6,10,1.6), @(4,1,8,0.6), @(1.6,2.2,1.6,0.9), @(1.2,3.1,1,1.3)) $rojo)
+            [void](Grupo $cuerpo @(@(5,2,0.6,0.6), @(8,1.6,0.6,0.6), @(10.6,2.2,0.6,0.6)) $blanco)
+            [void](Grupo $cuerpo @(@(3.8,3.8,3.4,2.4), @(7.2,3.6,1.6,0.5), @(3,4.2,0.8,0.5)) $cOscuro)
+        }
+        'audifonos' {
+            # Diadema sobre la cabeza y almohadillas a los costados
+            $diadema = Pincel 55 55 60; $almohadilla = Pincel 60 200 190
+            [void](Grupo $cuerpo @(@(3,2.1,10,0.9), @(2.3,2.5,1,1.1), @(12.7,2.5,1,1.1)) $diadema)
+            [void](Grupo $cuerpo @(@(1.7,3.4,1.6,2.6), @(12.7,3.4,1.6,2.6)) $almohadilla)
+            $musica = $true
         }
     }
 
@@ -491,6 +506,28 @@ try {
         }
     }
 
+    # Notas musicales de los audifonos: suben por pasos, igual que el humo
+    $notas = New-Object System.Collections.ArrayList
+    function Nota {
+        $n = New-Object System.Windows.Controls.TextBlock
+        $n.Text = @([char]0x266A, [char]0x266B)[(Get-Random -Maximum 2)]
+        $n.FontSize = 13; $n.FontWeight = 'Bold'; $n.Foreground = $almohadilla
+        [void]$img.Children.Add($n)
+        $lado = $(if ((Get-Random -Maximum 2) -eq 0) { -0.5 } else { 13.6 })
+        [void]$notas.Add(@{ t = $n; paso = 0; x = $lado })
+        Mover-Notas
+    }
+    function Mover-Notas {
+        foreach ($b in @($notas)) {
+            $f = $b.paso / 14
+            if ($f -ge 1) { $img.Children.Remove($b.t); $notas.Remove($b); continue }
+            [System.Windows.Controls.Canvas]::SetTop($b.t, (3 - 6 * $f) * $px)
+            [System.Windows.Controls.Canvas]::SetLeft($b.t, ($b.x + [math]::Sin($f * 6) * 0.6) * $px)
+            $b.t.Opacity = 1 - $f
+            $b.paso++
+        }
+    }
+
     $anim = New-Object System.Windows.Threading.DispatcherTimer
     $anim.Interval = [TimeSpan]::FromMilliseconds(120)
     $anim.Add_Tick({
@@ -587,6 +624,11 @@ try {
         # Cada medio segundo mira que ventana tienes al frente (no mientras camina, para no trabarla)
         if (($t % 4) -eq 0 -and -not $estado.saliendo -and $estado.fase -ne 'caminar' -and -not $CapturaSVG) {
             try { Mirar-Frente } catch {}
+        }
+        # Notas de los audifonos (no mientras duerme)
+        if ($musica) {
+            Mover-Notas
+            if (-not $estado.dormido -and $estado.fase -ne 'dormir' -and ($t % 11) -eq 0) { Nota }
         }
         # El simbolo flota
         if ($simbolo) { PonerY $simbolo $(if ((($t / 3) % 2) -lt 1) { -4 * $px } else { -4.6 * $px }) }
