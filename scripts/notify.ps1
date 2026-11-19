@@ -419,9 +419,9 @@ try {
     $estado = @{ tick = 0; fase = 'caminar'; espera = 0; suenio = 0; dormido = $false; saliendo = $false; letras = 0; sentado = $false }
     $limiteEspera = $(if ($duerme) { 38 } else { 80 })   # ticks de 120 ms
     # Trabajo largo (1 min o mas): probablemente te fuiste, asi que no se va sola.
-    # Tope de 2 horas dormida por si nunca vuelves (el mod la deja vivir 3 h)
+    # Tope de 9 min dormida (el mod la deja vivir 10 min, el maximo que acepta Claude)
     $quedarse = $duerme -and $duracionMs -ge 60000 -and -not $CapturaSVG -and -not $CapturaPNG
-    $MAX_DORMIDA = [int](2 * 3600 / 0.12)
+    $MAX_DORMIDA = [int](9 * 60 / 0.12)
 
     function Mover($desde, $hasta, $alTerminar, [switch]$Salida) {
         $estado.fase = 'caminar'
