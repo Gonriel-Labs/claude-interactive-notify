@@ -1,5 +1,5 @@
 {
   "name": "claude-interactive-notify",
-  "owner": { "name": "mark-quispe" },
+  "owner": { "name": "Gonriel-Labs" },
   "plugins": [{ "name": "interactive-notify", "source": "./" }]
 }
